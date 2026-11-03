@@ -7,11 +7,12 @@
 <meta name="theme-color" content="#f8f9fb" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#171c24" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600&family=Golos+Text:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400&display=swap">
 <style>
 :root{
   --bg:#eef1f4; --panel:#f8f9fb; --page:#ffffff; --ink:#18202c; --muted:#66707f;
-  --line:#dde2e9; --rule:#e6ebf2; --accent:#2f56d9; --on-accent:#ffffff; --accent-soft:#e3e9fc; --danger:#c23a2b; --ok:#2e9e5b;
+  --line:#dde2e9; --accent:#2f56d9; --on-accent:#ffffff; --accent-soft:#e3e9fc; --danger:#c23a2b; --ok:#2e9e5b;
+  --l-red:#d2392b; --l-blue:#2f6fd9; --l-green:#2b8a4e; --l-amber:#b97a00;
   --f-display:"Unbounded",system-ui,sans-serif;
   --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
@@ -19,7 +20,8 @@
 }
 @media (prefers-color-scheme: dark){:root{
   --bg:#12161d; --panel:#171c24; --page:#1c222c; --ink:#e7ebf1; --muted:#909aa9;
-  --line:#2a313d; --rule:#252c37; --accent:#7f9cff; --on-accent:#0f1422; --accent-soft:#25304d; --danger:#ff7b6b; --ok:#4cc27c; color-scheme:dark}}
+  --line:#2a313d; --accent:#7f9cff; --on-accent:#0f1422; --accent-soft:#25304d; --danger:#ff7b6b; --ok:#4cc27c;
+  --l-red:#ff7a6c; --l-blue:#7fa6ff; --l-green:#5fd08a; --l-amber:#f2b84b; color-scheme:dark}}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;overflow:hidden;
@@ -27,7 +29,7 @@ body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1
 [hidden]{display:none!important}
 button{font:inherit;color:inherit;cursor:pointer}
 button:disabled{opacity:.55;cursor:default}
-button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,input:focus-visible,[contenteditable]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .new,.primary{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:12px 14px;font-weight:600}
 .field{width:100%;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink)}
 .field::placeholder{color:var(--muted)}
@@ -35,7 +37,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .banner{padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:13px;line-height:1.45}
 .banner.err{background:var(--accent-soft);background:color-mix(in srgb,var(--danger) 14%,var(--page))}
 
-/* ----- login / setup ----- */
+/* вход */
 .gate{height:100%;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
 .card{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
 .card h1{font-family:var(--f-display);font-weight:600;font-size:26px;margin:0 0 2px}
@@ -45,10 +47,20 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .ghost{background:var(--page);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-weight:600}
 .card code{font-family:var(--f-mono);font-size:13px;background:var(--page);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
 
-/* ----- notes ----- */
-.app{height:100%;display:grid;grid-template-columns:320px 1fr}
+/* метки */
+.lbl{--c:var(--muted)}
+.lbl[data-l="important"]{--c:var(--l-red)} .lbl[data-l="work"]{--c:var(--l-blue)}
+.lbl[data-l="personal"]{--c:var(--l-green)} .lbl[data-l="ideas"]{--c:var(--l-amber)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--page);border-radius:999px;padding:5px 11px;font-size:13px;white-space:nowrap}
+.chip .sw{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.chip[aria-pressed="true"]{border-color:var(--c);color:var(--c);background:var(--accent-soft);background:color-mix(in srgb,var(--c) 12%,var(--page));font-weight:600}
+.filters{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+
+/* список */
+.app{height:100%;display:grid;grid-template-columns:330px 1fr}
 .side{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--line);
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;padding-block:18px 0;gap:14px}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;padding-block:18px 0;gap:12px;min-width:0}
 .brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand h1{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0}
 .status{font-family:var(--f-mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
@@ -57,31 +69,68 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .status[data-s="saving"] .dot{background:var(--accent)}
 .status[data-s="err"] .dot{background:var(--danger)}
 .list{flex:1;min-height:0;overflow-y:auto;margin:0 -8px;padding:0 8px 8px;display:flex;flex-direction:column;gap:2px}
+.group{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:12px 12px 4px;font-weight:600}
 .item{display:block;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px}
 .item:hover{background:var(--accent-soft)}
 .item[aria-current="true"]{background:var(--page);box-shadow:0 0 0 1px var(--line)}
 .item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item .pin{color:var(--accent);font-size:11px;margin-right:6px}
 .item .p{color:var(--muted);font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item .d{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:5px}
+.item .d{display:flex;align-items:center;gap:8px;font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:6px}
+.item .tags{display:flex;gap:4px}
+.item .tags i{width:8px;height:8px;border-radius:50%;background:var(--c);display:block}
 .empty{color:var(--muted);font-size:14px;line-height:1.5;padding:12px 4px}
 .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-block:10px 14px;font-size:12px;color:var(--muted)}
 .foot span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.main{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--page)}
-.bar{display:flex;align-items:center;gap:8px;padding-block:12px;border-bottom:1px solid var(--line);padding-left:24px;padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* редактор */
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--page);position:relative}
+.bar{display:flex;align-items:center;gap:8px;padding-block:10px;border-bottom:1px solid var(--line);padding-left:24px;padding-right:max(16px,env(safe-area-inset-right,0px))}
 .bar .meta{flex:1;font-family:var(--f-mono);font-size:11px;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px;white-space:nowrap}
-.tbtn[aria-pressed="true"]{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.tbtn[aria-pressed="true"]{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}
 .tbtn.del[data-armed="true"]{background:var(--danger);border-color:var(--danger);color:#fff}
 .back{display:none}
-.sheet{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-left:24px;padding-right:max(24px,env(safe-area-inset-right,0px));padding-block:22px 40px}
-.sheet-in{max-width:68ch;width:100%;display:flex;flex-direction:column;flex:1}
-.title{border:0;background:none;color:var(--ink);font-family:var(--f-body);font-weight:600;font-size:26px;line-height:1.25;padding:0 0 10px;outline:none}
-.title::placeholder,.body::placeholder{color:var(--muted)}
-.body{flex:1;min-height:60vh;border:0;resize:none;background:transparent;color:var(--ink);font:inherit;font-size:16px;outline:none;padding:0;line-height:28px;
-  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,var(--rule) 27px,var(--rule) 28px);background-attachment:local}
+.fmt{display:flex;gap:4px;padding-block:6px;border-bottom:1px solid var(--line);overflow-x:auto;padding-left:20px;padding-right:max(16px,env(safe-area-inset-right,0px));scrollbar-width:none}
+.fmt::-webkit-scrollbar{display:none}
+.fmt button{flex:none;min-width:38px;height:36px;border:0;background:none;border-radius:8px;font-size:15px;padding:0 9px}
+.fmt button:hover{background:var(--accent-soft)}
+.fmt button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.fmt .sep{flex:none;width:1px;background:var(--line);margin:6px 4px}
+.fmt .attach{font-size:13px;font-weight:600;color:var(--accent);margin-left:auto}
+.sheet{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-left:24px;padding-right:max(24px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.sheet-in{max-width:70ch;width:100%;display:flex;flex-direction:column;gap:12px;flex:1}
+.title{border:0;background:none;color:var(--ink);font-family:var(--f-body);font-weight:600;font-size:26px;line-height:1.25;padding:0;outline:none;width:100%}
+.title::placeholder{color:var(--muted)}
+.labels{display:flex;gap:6px;flex-wrap:wrap}
+.body{min-height:28vh;outline:none;font-size:16px;line-height:1.65;overflow-wrap:anywhere}
+.body:empty::before{content:attr(data-placeholder);color:var(--muted);pointer-events:none}
+.body h2{font-size:21px;line-height:1.3;margin:16px 0 6px}
+.body h3{font-size:18px;margin:14px 0 4px}
+.body ul,.body ol{padding-left:24px;margin:6px 0}
+.body p{margin:0 0 6px}
+/* вложения */
+.files{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.file{border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;background:var(--panel);min-width:0}
+.file .thumb{aspect-ratio:4/3;max-width:100%;background:var(--bg);display:flex;align-items:center;justify-content:center;border:0;padding:0;width:100%;font-family:var(--f-mono);font-size:13px;color:var(--muted);text-transform:uppercase}
+.file .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.file .info{padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.file .name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file .size{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.file .acts{display:flex;border-top:1px solid var(--line)}
+.file .acts button{flex:1;border:0;background:none;padding:8px 4px;font-size:12px;color:var(--accent)}
+.file .acts button+button{border-left:1px solid var(--line);color:var(--muted)}
+.file .acts button[data-armed="true"]{background:var(--danger);color:#fff}
+.uploading{font-size:13px;color:var(--muted)}
 .placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px;line-height:1.6}
 .placeholder b{display:block;font-family:var(--f-display);font-weight:600;color:var(--ink);font-size:18px;margin-bottom:6px}
+/* просмотр фото и уведомления */
+.viewer{position:fixed;inset:0;z-index:20;background:rgba(10,12,16,.92);display:flex;flex-direction:column;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+.viewer .vbar{display:flex;gap:8px;justify-content:flex-end}
+.viewer .vbar button{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:8px;padding:9px 14px}
+.viewer .vimg{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding-top:10px}
+.viewer img{max-width:100%;max-height:100%;object-fit:contain}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--page);padding:10px 16px;border-radius:10px;font-size:14px;max-width:calc(100% - 32px);text-align:center}
 @media (max-width:760px){
   .app{grid-template-columns:1fr}
   .app[data-view="list"] .main{display:none}
@@ -89,14 +138,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   .side{border-right:0;padding-right:max(16px,env(safe-area-inset-right,0px))}
   .back{display:inline-block}
   .bar,.sheet{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .fmt{padding-left:max(12px,env(safe-area-inset-left,0px))}
   .sheet{padding-right:max(16px,env(safe-area-inset-right,0px))}
   .title{font-size:22px}
+  .files{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bar .meta{visibility:hidden}
+  .fmt{gap:2px}
+  .fmt button{min-width:34px;padding:0 6px}
+  .fmt .attach .lbltxt{display:none}
 }
 </style>
 </head>
 <body>
 
-<!-- Нет настроек Firebase -->
 <section class="gate" id="setup" hidden>
   <div class="card">
     <h1>Почти готово</h1>
@@ -104,7 +158,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   </div>
 </section>
 
-<!-- Вход -->
 <section class="gate" id="login" hidden>
   <form class="card" id="loginForm" novalidate>
     <h1>Блокнот</h1>
@@ -120,7 +173,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   </form>
 </section>
 
-<!-- Заметки -->
 <div class="app" id="app" data-view="list" hidden>
   <aside class="side">
     <div class="brand">
@@ -130,6 +182,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
     <div id="banner" class="banner err" hidden></div>
     <button class="new" id="newBtn" type="button">＋ Новая заметка</button>
     <input class="field" id="search" type="search" placeholder="Поиск по заметкам" autocomplete="off">
+    <div class="filters" id="filters"></div>
     <div class="list" id="list"><div class="empty">Загружаю заметки…</div></div>
     <div class="foot"><span id="who"></span><button class="link" id="outBtn" type="button">Выйти</button></div>
   </aside>
@@ -137,18 +190,40 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
     <div class="bar" id="bar" hidden>
       <button class="tbtn back" id="backBtn" type="button">← Список</button>
       <div class="meta" id="meta"></div>
-      <button class="tbtn" id="pinBtn" type="button" aria-pressed="false">Закрепить</button>
+      <button class="tbtn" id="pinBtn" type="button" aria-pressed="false">📌 Закрепить</button>
       <button class="tbtn del" id="delBtn" type="button">Удалить</button>
+    </div>
+    <div class="fmt" id="fmt" hidden>
+      <button type="button" data-cmd="bold" title="Жирный (Ctrl+B)" aria-pressed="false"><b>Ж</b></button>
+      <button type="button" data-cmd="italic" title="Курсив (Ctrl+I)" aria-pressed="false"><i>К</i></button>
+      <button type="button" data-cmd="underline" title="Подчёркнутый (Ctrl+U)" aria-pressed="false"><u>Ч</u></button>
+      <button type="button" data-cmd="strikeThrough" title="Зачёркнутый" aria-pressed="false"><s>З</s></button>
+      <span class="sep"></span>
+      <button type="button" data-cmd="h2" title="Заголовок" aria-pressed="false"><b>H</b></button>
+      <button type="button" data-cmd="insertUnorderedList" title="Список" aria-pressed="false">•≡</button>
+      <button type="button" data-cmd="insertOrderedList" title="Нумерованный список" aria-pressed="false">1.</button>
+      <button type="button" data-cmd="removeFormat" title="Убрать оформление">⌫A</button>
+      <button type="button" class="attach" id="attachBtn" title="Прикрепить файл">📎<span class="lbltxt"> Файл</span></button>
     </div>
     <div class="sheet" id="sheet" hidden>
       <div class="sheet-in">
         <input class="title" id="title" placeholder="Заголовок" autocomplete="off">
-        <textarea class="body" id="body" placeholder="Начните писать…"></textarea>
+        <div class="labels" id="labels"></div>
+        <div class="body" id="body" contenteditable="true" data-placeholder="Начните писать…"></div>
+        <div class="uploading" id="uploading" hidden></div>
+        <div class="files" id="files"></div>
       </div>
     </div>
     <div class="placeholder" id="ph"><div><b>Выберите заметку</b>или создайте новую — она сразу появится на всех устройствах.</div></div>
   </main>
 </div>
+
+<input type="file" id="fileInput" hidden>
+<div class="viewer" id="viewer" hidden>
+  <div class="vbar"><button type="button" id="vSave">Скачать</button><button type="button" id="vClose">✕ Закрыть</button></div>
+  <div class="vimg"><img id="vImg" alt=""></div>
+</div>
+<div class="toast" id="toast" hidden></div>
 
 <script src="config.js"></script>
 <script src="firebase.js"></script>
@@ -166,6 +241,19 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   try { fs = FB.initializeFirestore(fbApp, { localCache: FB.persistentLocalCache({ tabManager: FB.persistentMultipleTabManager() }) }); }
   catch (e) { fs = FB.initializeFirestore(fbApp, { localCache: FB.memoryLocalCache() }); }
 
+  const LABELS = [
+    { id: "important", name: "Важное" },
+    { id: "work", name: "Работа" },
+    { id: "personal", name: "Личное" },
+    { id: "ideas", name: "Идеи" }
+  ];
+  const MAX_FILE = 700 * 1024;   // ограничение бесплатного Firestore: 1 МБ на документ
+
+  let toastTimer = null;
+  function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 3200); }
+  const kb = n => n < 1024 ? n + " Б" : n < 1048576 ? Math.round(n / 1024) + " КБ" : (n / 1048576).toFixed(1).replace(".", ",") + " МБ";
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
   // ---------- вход ----------
   const AUTH_ERR = {
     "auth/invalid-email": "Похоже, почта написана с ошибкой.",
@@ -178,8 +266,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
     "auth/weak-password": "Пароль слишком короткий: нужно хотя бы 6 символов.",
     "auth/too-many-requests": "Слишком много попыток. Подожди пару минут.",
     "auth/network-request-failed": "Нет интернета. Для входа нужна связь.",
-    "auth/operation-not-allowed": "В Firebase не включён вход по почте (шаг 3 в README).",
-    "auth/configuration-not-found": "В Firebase не включён вход по почте (шаг 3 в README).",
+    "auth/operation-not-allowed": "В Firebase не включён вход по почте.",
+    "auth/configuration-not-found": "В Firebase не включён вход по почте.",
     "auth/invalid-api-key": "В config.js неверный apiKey — проверь, что скопировал firebaseConfig целиком."
   };
   function loginMsg(text, isErr) { const m = $("loginMsg"); m.textContent = text || ""; m.hidden = !text; m.className = "banner" + (isErr ? " err" : ""); }
@@ -203,11 +291,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   };
   $("outBtn").onclick = () => { flushAll(); FB.signOut(auth); };
 
-  // ---------- заметки ----------
+  // ---------- состояние ----------
   const app = $("app"), list = $("list"), titleEl = $("title"), bodyEl = $("body"), meta = $("meta");
-  let notes = new Map(), timers = new Map(), col = null, unsub = null, currentId = null, query = "", loaded = false, lastMeta = { fromCache: true, hasPendingWrites: false };
+  let notes = new Map(), timers = new Map(), col = null, filesCol = null, unsub = null, currentId = null;
+  let query = "", filter = "all", loaded = false, lastMeta = { fromCache: true, hasPendingWrites: false };
+  const fileCache = new Map();   // id -> dataURL
 
-  const fmt = ts => {
+  const fmtDate = ts => {
     if (!ts) return "";
     const d = new Date(ts), now = new Date();
     if (d.toDateString() === now.toDateString()) return "сегодня, " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
@@ -224,49 +314,126 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   }
   addEventListener("online", updateStatus); addEventListener("offline", updateStatus);
 
-  function sorted() { return [...notes.entries()].sort((a, b) => (b[1].pinned ? 1 : 0) - (a[1].pinned ? 1 : 0) || (b[1].updatedAt || 0) - (a[1].updatedAt || 0)); }
+  // безопасный HTML: только оформление, без скриптов и ссылок
+  const KEEP = new Set(["B","STRONG","I","EM","U","S","STRIKE","DEL","H2","H3","UL","OL","LI","BR","DIV","P"]);
+  const DROP = new Set(["SCRIPT","STYLE","IFRAME","OBJECT","EMBED","IMG","SVG","VIDEO","AUDIO","LINK","META","TEMPLATE"]);
+  function cleanHtml(html) {
+    const doc = new DOMParser().parseFromString("<body>" + (html || "") + "</body>", "text/html");
+    const walk = el => {
+      for (const c of [...el.childNodes]) {
+        if (c.nodeType === 3) continue;
+        if (c.nodeType !== 1 || DROP.has(c.tagName)) { c.remove(); continue; }
+        walk(c);
+        if (!KEEP.has(c.tagName)) c.replaceWith(...c.childNodes);
+        else for (const a of [...c.attributes]) c.removeAttribute(a.name);
+      }
+    };
+    walk(doc.body);
+    return doc.body.innerHTML;
+  }
+  const toNote = v => ({
+    title: String(v.title || ""),
+    html: v.html != null ? cleanHtml(String(v.html)) : esc(String(v.body || "")).replace(/\n/g, "<br>"),
+    body: String(v.body || ""),
+    pinned: !!v.pinned,
+    labels: Array.isArray(v.labels) ? v.labels.filter(l => LABELS.some(x => x.id === l)) : [],
+    files: Array.isArray(v.files) ? v.files.filter(f => f && f.id) : [],
+    createdAt: v.createdAt || 0, updatedAt: v.updatedAt || 0
+  });
+
+  // ---------- список ----------
+  function renderFilters() {
+    const f = $("filters"); f.textContent = "";
+    const mk = (id, name) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip lbl"; b.dataset.l = id;
+      b.setAttribute("aria-pressed", filter === id ? "true" : "false");
+      if (id !== "all" && id !== "pinned") { const s = document.createElement("span"); s.className = "sw"; b.append(s); }
+      b.append(document.createTextNode(name));
+      b.onclick = () => { filter = id; renderFilters(); renderList(); };
+      f.append(b);
+    };
+    mk("all", "Все"); mk("pinned", "📌 Закреплённые");
+    LABELS.forEach(l => mk(l.id, l.name));
+  }
+  function sorted() { return [...notes.entries()].sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0)); }
+  function itemEl(id, n) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "item";
+    b.setAttribute("aria-current", id === currentId ? "true" : "false");
+    const t = document.createElement("div"); t.className = "t";
+    t.textContent = (n.pinned ? "📌 " : "") + (n.title.trim() || "Без названия");
+    const p = document.createElement("div"); p.className = "p"; p.textContent = n.body.replace(/\s+/g, " ").trim() || (n.files.length ? "Файлы" : "Пустая заметка");
+    const d = document.createElement("div"); d.className = "d";
+    if (n.labels.length) {
+      const tg = document.createElement("span"); tg.className = "tags";
+      n.labels.forEach(l => { const i = document.createElement("i"); i.className = "lbl"; i.dataset.l = l; i.title = (LABELS.find(x => x.id === l) || {}).name || ""; tg.append(i); });
+      d.append(tg);
+    }
+    d.append(document.createTextNode(fmtDate(n.updatedAt) + (n.files.length ? " · 📎 " + n.files.length : "")));
+    b.append(t, p, d); b.onclick = () => open(id);
+    return b;
+  }
+  function group(name) { const g = document.createElement("div"); g.className = "group"; g.textContent = name; return g; }
   function renderList() {
     const q = query.trim().toLowerCase();
-    const items = sorted().filter(([, n]) => !q || (n.title + " " + n.body).toLowerCase().includes(q));
+    const items = sorted().filter(([, n]) =>
+      (!q || (n.title + " " + n.body + " " + n.files.map(f => f.name).join(" ")).toLowerCase().includes(q)) &&
+      (filter === "all" || (filter === "pinned" ? n.pinned : n.labels.includes(filter))));
     list.textContent = "";
     if (!items.length) {
       const e = document.createElement("div"); e.className = "empty";
-      e.textContent = !loaded ? "Загружаю заметки…" : q ? "Ничего не найдено." : "Пока пусто. Нажми «Новая заметка» — она появится на всех устройствах, где ты вошёл.";
+      e.textContent = !loaded ? "Загружаю заметки…" : q ? "Ничего не найдено."
+        : filter === "pinned" ? "Закреплённых заметок нет. Открой заметку и нажми «📌 Закрепить»."
+        : filter !== "all" ? "С этой меткой заметок нет. Метку можно поставить под заголовком заметки."
+        : "Пока пусто. Нажми «Новая заметка» — она появится на всех устройствах, где ты вошёл.";
       list.append(e); return;
     }
-    for (const [id, n] of items) {
-      const b = document.createElement("button"); b.type = "button"; b.className = "item";
-      b.setAttribute("aria-current", id === currentId ? "true" : "false");
-      const t = document.createElement("div"); t.className = "t";
-      if (n.pinned) { const p = document.createElement("span"); p.className = "pin"; p.textContent = "●"; t.append(p); }
-      t.append(document.createTextNode(n.title.trim() || "Без названия"));
-      const p = document.createElement("div"); p.className = "p"; p.textContent = n.body.replace(/\s+/g, " ").trim() || "Пустая заметка";
-      const d = document.createElement("div"); d.className = "d"; d.textContent = fmt(n.updatedAt);
-      b.append(t, p, d); b.onclick = () => open(id); list.append(b);
-    }
+    const pinned = items.filter(([, n]) => n.pinned), rest = items.filter(([, n]) => !n.pinned);
+    if (pinned.length && rest.length && filter !== "pinned") {
+      list.append(group("Закреплённые")); pinned.forEach(([id, n]) => list.append(itemEl(id, n)));
+      list.append(group("Остальные")); rest.forEach(([id, n]) => list.append(itemEl(id, n)));
+    } else items.forEach(([id, n]) => list.append(itemEl(id, n)));
   }
+
+  // ---------- заметка ----------
   function renderMeta() {
     const n = notes.get(currentId); if (!n) return;
     const w = (n.body.match(/\S+/g) || []).length;
-    meta.textContent = `Изменено ${fmt(n.updatedAt)} · ${w} ${plural(w, "слово", "слова", "слов")}`;
+    meta.textContent = `Изменено ${fmtDate(n.updatedAt)} · ${w} ${plural(w, "слово", "слова", "слов")}`;
     $("pinBtn").setAttribute("aria-pressed", n.pinned ? "true" : "false");
-    $("pinBtn").textContent = n.pinned ? "Закреплено" : "Закрепить";
+    $("pinBtn").textContent = n.pinned ? "📌 Закреплено" : "📌 Закрепить";
   }
-  function showEditor(on) { $("bar").hidden = !on; $("sheet").hidden = !on; $("ph").hidden = on; }
+  function renderLabels() {
+    const n = notes.get(currentId), box = $("labels"); box.textContent = ""; if (!n) return;
+    LABELS.forEach(l => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "chip lbl"; b.dataset.l = l.id;
+      b.setAttribute("aria-pressed", n.labels.includes(l.id) ? "true" : "false");
+      const s = document.createElement("span"); s.className = "sw"; b.append(s, document.createTextNode(l.name));
+      b.onclick = () => {
+        const cur = notes.get(currentId); if (!cur) return;
+        const labels = cur.labels.includes(l.id) ? cur.labels.filter(x => x !== l.id) : [...cur.labels, l.id];
+        notes.set(currentId, { ...cur, labels, updatedAt: Date.now() });
+        schedule(currentId, 0); renderLabels(); renderMeta(); renderList();
+      };
+      box.append(b);
+    });
+  }
+  function showEditor(on) { $("bar").hidden = !on; $("fmt").hidden = !on; $("sheet").hidden = !on; $("ph").hidden = on; }
   function open(id) {
     flushAll(); currentId = id; const n = notes.get(id);
     if (!n) { showEditor(false); renderList(); return; }
-    titleEl.value = n.title; bodyEl.value = n.body; disarmDelete();
-    showEditor(true); renderMeta(); renderList(); app.dataset.view = "note";
-    if (!n.title && !n.body) titleEl.focus();
+    titleEl.value = n.title; bodyEl.innerHTML = n.html; disarmDelete(); $("uploading").hidden = true;
+    showEditor(true); renderMeta(); renderLabels(); renderFiles(); renderList(); app.dataset.view = "note";
+    $("sheet").scrollTop = 0;
+    if (!n.title && !n.body && !n.files.length) titleEl.focus();
   }
   function closeNote() { flushAll(); app.dataset.view = "list"; }
 
+  // ---------- сохранение ----------
   function save(id) {
     const n = notes.get(id); if (!n || !col) return;
     FB.setDoc(FB.doc(col, id), n).catch(err => {
       setStatus("err", "Не сохранено");
-      banner(err && err.code === "permission-denied" ? "Firebase не пускает к заметкам: проверь правила Firestore (шаг 4 в README)." : "Не удалось сохранить: " + (err.code || err.message));
+      banner(err && err.code === "permission-denied" ? "Firebase не пускает к заметкам: обнови правила Firestore." : "Не удалось сохранить: " + (err.code || err.message));
     });
   }
   function schedule(id, ms = 500) {
@@ -277,20 +444,166 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   function flushAll() { for (const [id, t] of timers) { clearTimeout(t); timers.delete(id); save(id); } updateStatus(); }
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushAll(); });
   addEventListener("pagehide", flushAll);
+  window.appPause = flushAll;
 
-  function edit(field, value) {
+  function edit(patch) {
     const n = notes.get(currentId); if (!n) return;
-    notes.set(currentId, { ...n, [field]: value, updatedAt: Date.now() });
+    notes.set(currentId, { ...n, ...patch, updatedAt: Date.now() });
     schedule(currentId); renderMeta(); renderList();
   }
-  titleEl.addEventListener("input", () => edit("title", titleEl.value));
-  bodyEl.addEventListener("input", () => edit("body", bodyEl.value));
+  titleEl.addEventListener("input", () => edit({ title: titleEl.value }));
   titleEl.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); bodyEl.focus(); } });
+  const bodyChanged = () => edit({ html: bodyEl.innerHTML, body: bodyEl.innerText.replace(/ /g, " ").trim() });
+  bodyEl.addEventListener("input", bodyChanged);
+  bodyEl.addEventListener("blur", () => { if (!bodyEl.innerText.trim() && bodyEl.innerHTML) { bodyEl.innerHTML = ""; bodyChanged(); } });
+  bodyEl.addEventListener("paste", e => {
+    const text = e.clipboardData && e.clipboardData.getData("text/plain");
+    if (text == null) return;
+    e.preventDefault(); document.execCommand("insertText", false, text);
+  });
+  try { document.execCommand("defaultParagraphSeparator", false, "div"); } catch (e) {}
 
+  // ---------- форматирование ----------
+  const fmtBtns = [...$("fmt").querySelectorAll("button[data-cmd]")];
+  fmtBtns.forEach(b => {
+    b.addEventListener("mousedown", e => e.preventDefault());   // не терять выделение
+    b.addEventListener("click", () => {
+      if (document.activeElement !== bodyEl) bodyEl.focus();
+      const c = b.dataset.cmd;
+      if (c === "h2") {
+        const cur = String(document.queryCommandValue("formatBlock") || "").toLowerCase();
+        document.execCommand("formatBlock", false, cur === "h2" ? "div" : "h2");
+      } else document.execCommand(c, false, null);
+      bodyChanged(); syncFmt();
+    });
+  });
+  function syncFmt() {
+    if (document.activeElement !== bodyEl) return;
+    fmtBtns.forEach(b => {
+      const c = b.dataset.cmd; let on = false;
+      try { on = c === "h2" ? String(document.queryCommandValue("formatBlock")).toLowerCase() === "h2" : c !== "removeFormat" && document.queryCommandState(c); } catch (e) {}
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+  }
+  document.addEventListener("selectionchange", syncFmt);
+
+  // ---------- файлы ----------
+  const ext = name => (name.split(".").pop() || "файл").slice(0, 5);
+  const isImage = t => /^image\/(png|jpe?g|gif|webp|bmp)$/i.test(t || "");
+  function readDataUrl(blob) {
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(blob); });
+  }
+  async function shrinkImage(file) {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = url; });
+      for (const [side, q] of [[1800, .85], [1400, .8], [1100, .72], [800, .65]]) {
+        const k = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement("canvas"); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const blob = await new Promise(r => c.toBlob(r, "image/jpeg", q));
+        if (blob && blob.size <= MAX_FILE) return blob;
+      }
+      return null;
+    } finally { URL.revokeObjectURL(url); }
+  }
+  $("attachBtn").addEventListener("mousedown", e => e.preventDefault());
+  $("attachBtn").onclick = () => { $("fileInput").value = ""; $("fileInput").click(); };
+  $("fileInput").addEventListener("change", async () => {
+    const file = $("fileInput").files[0]; const noteId = currentId;
+    if (!file || !noteId || !filesCol) return;
+    const up = $("uploading"); up.hidden = false; up.textContent = "Прикрепляю «" + file.name + "»…";
+    try {
+      let blob = file, name = file.name || "файл", type = file.type || "application/octet-stream";
+      if (isImage(type) && file.size > MAX_FILE && !/gif/i.test(type)) {
+        blob = await shrinkImage(file); type = "image/jpeg";
+        if (blob && !/\.jpe?g$/i.test(name)) name = name.replace(/\.[^.]+$/, "") + ".jpg";
+      }
+      if (!blob || blob.size > MAX_FILE) { toast("Файл слишком большой: можно до 700 КБ (фото сжимаются сами)."); return; }
+      const dataUrl = await readDataUrl(blob);
+      const ref = FB.doc(filesCol);
+      const meta = { id: ref.id, name, type, size: blob.size };
+      fileCache.set(ref.id, dataUrl);
+      await Promise.race([
+        FB.setDoc(ref, { noteId, name, type, size: blob.size, data: dataUrl.slice(dataUrl.indexOf(",") + 1), createdAt: Date.now() }),
+        new Promise(r => setTimeout(r, 1500))   // без интернета не ждём: файл уйдёт, когда появится связь
+      ]);
+      const n = notes.get(noteId); if (!n) return;
+      notes.set(noteId, { ...n, files: [...n.files, meta], updatedAt: Date.now() });
+      schedule(noteId, 0); if (noteId === currentId) { renderFiles(); renderMeta(); } renderList();
+      toast("Файл прикреплён");
+    } catch (e) {
+      toast(e && e.code === "permission-denied" ? "Firebase не пускает файлы: обнови правила Firestore." : "Не удалось прикрепить файл.");
+    } finally { up.hidden = true; }
+  });
+  async function loadFile(id) {
+    if (fileCache.has(id)) return fileCache.get(id);
+    const snap = await FB.getDoc(FB.doc(filesCol, id));
+    if (!snap.exists()) throw new Error("missing");
+    const v = snap.data(); const url = "data:" + (v.type || "application/octet-stream") + ";base64," + v.data;
+    fileCache.set(id, url); return url;
+  }
+  async function downloadFile(f) {
+    try {
+      const url = await loadFile(f.id);
+      if (window.Android && Android.saveFile) {
+        const where = Android.saveFile(f.name, f.type || "", url.slice(url.indexOf(",") + 1));
+        toast(where === "error" ? "Не удалось сохранить файл." : "Сохранено: " + where);
+      } else {
+        const blob = await (await fetch(url)).blob();
+        const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = f.name;
+        document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      }
+    } catch (e) { toast("Файл не загрузился. Нужен интернет, чтобы открыть его на этом устройстве."); }
+  }
+  let viewing = null;
+  async function viewImage(f) {
+    try { $("vImg").src = await loadFile(f.id); viewing = f; $("viewer").hidden = false; }
+    catch (e) { toast("Фото не загрузилось. Нужен интернет."); }
+  }
+  function closeViewer() { $("viewer").hidden = true; $("vImg").removeAttribute("src"); viewing = null; }
+  $("vClose").onclick = closeViewer;
+  $("vSave").onclick = () => viewing && downloadFile(viewing);
+  function removeFile(f) {
+    const n = notes.get(currentId); if (!n) return;
+    notes.set(currentId, { ...n, files: n.files.filter(x => x.id !== f.id), updatedAt: Date.now() });
+    schedule(currentId, 0); renderFiles(); renderList();
+    fileCache.delete(f.id);
+    FB.deleteDoc(FB.doc(filesCol, f.id)).catch(() => {});
+  }
+  function renderFiles() {
+    const box = $("files"), n = notes.get(currentId); box.textContent = ""; if (!n) return;
+    n.files.forEach(f => {
+      const card = document.createElement("div"); card.className = "file";
+      const th = document.createElement("button"); th.type = "button"; th.className = "thumb"; th.title = f.name;
+      if (isImage(f.type)) {
+        th.textContent = "фото…";
+        loadFile(f.id).then(url => { const img = document.createElement("img"); img.alt = f.name; img.src = url; th.textContent = ""; th.append(img); })
+          .catch(() => { th.textContent = "нет связи"; });
+        th.onclick = () => viewImage(f);
+      } else { th.textContent = ext(f.name); th.onclick = () => downloadFile(f); }
+      const info = document.createElement("div"); info.className = "info";
+      const nm = document.createElement("div"); nm.className = "name"; nm.textContent = f.name;
+      const sz = document.createElement("div"); sz.className = "size"; sz.textContent = kb(f.size || 0);
+      info.append(nm, sz);
+      const acts = document.createElement("div"); acts.className = "acts";
+      const dl = document.createElement("button"); dl.type = "button"; dl.textContent = "Скачать"; dl.onclick = () => downloadFile(f);
+      const rm = document.createElement("button"); rm.type = "button"; rm.textContent = "Убрать";
+      let t = null;
+      rm.onclick = () => {
+        if (rm.dataset.armed !== "true") { rm.dataset.armed = "true"; rm.textContent = "Точно?"; t = setTimeout(() => { rm.dataset.armed = "false"; rm.textContent = "Убрать"; }, 3000); return; }
+        clearTimeout(t); removeFile(f);
+      };
+      acts.append(dl, rm);
+      card.append(th, info, acts); box.append(card);
+    });
+  }
+
+  // ---------- кнопки заметки ----------
   $("newBtn").onclick = () => {
     if (!col) return;
     const id = FB.doc(col).id, now = Date.now();
-    notes.set(id, { title: "", body: "", pinned: false, createdAt: now, updatedAt: now });
+    notes.set(id, { title: "", html: "", body: "", pinned: false, labels: (filter !== "all" && filter !== "pinned") ? [filter] : [], files: [], createdAt: now, updatedAt: now });
     query = ""; $("search").value = "";
     save(id); open(id);
   };
@@ -304,34 +617,40 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
     const b = $("delBtn");
     if (b.dataset.armed !== "true") { b.dataset.armed = "true"; b.textContent = "Точно удалить?"; armTimer = setTimeout(disarmDelete, 3500); return; }
     disarmDelete();
-    const id = currentId; clearTimeout(timers.get(id)); timers.delete(id);
+    const id = currentId, n = notes.get(id); clearTimeout(timers.get(id)); timers.delete(id);
     notes.delete(id); currentId = null; showEditor(false); app.dataset.view = "list"; renderList();
+    if (n) n.files.forEach(f => { fileCache.delete(f.id); FB.deleteDoc(FB.doc(filesCol, f.id)).catch(() => {}); });
     FB.deleteDoc(FB.doc(col, id)).catch(() => setStatus("err", "Не удалено"));
   };
 
-  window.appPause = flushAll;   // Android: приложение свернули
-  // кнопка «Назад» на Android
   window.appBack = () => {
+    if (!$("viewer").hidden) { closeViewer(); return true; }
     if (!app.hidden && app.dataset.view === "note" && matchMedia("(max-width:760px)").matches) { closeNote(); return true; }
     return false;
   };
+  addEventListener("keydown", e => { if (e.key === "Escape" && !$("viewer").hidden) closeViewer(); });
 
+  // ---------- синхронизация ----------
   function startNotes(user) {
-    notes = new Map(); currentId = null; loaded = false; showEditor(false); app.dataset.view = "list";
-    $("who").textContent = user.email || ""; banner(""); show("app"); renderList(); updateStatus();
+    notes = new Map(); currentId = null; loaded = false; filter = "all"; fileCache.clear();
+    showEditor(false); app.dataset.view = "list";
+    $("who").textContent = user.email || ""; banner(""); show("app"); renderFilters(); renderList(); updateStatus();
     col = FB.collection(fs, "users", user.uid, "notes");
+    filesCol = FB.collection(fs, "users", user.uid, "files");
     unsub = FB.onSnapshot(col, { includeMetadataChanges: true }, snap => {
       loaded = true; lastMeta = snap.metadata;
       const seen = new Set();
       snap.docs.forEach(d => {
         seen.add(d.id);
-        if (timers.has(d.id) || d.metadata.hasPendingWrites) return;   // это сейчас редактируется здесь
-        const v = d.data() || {};
-        const n = { title: String(v.title || ""), body: String(v.body || ""), pinned: !!v.pinned, createdAt: v.createdAt || 0, updatedAt: v.updatedAt || 0 };
+        if (timers.has(d.id) || d.metadata.hasPendingWrites) return;
+        const n = toNote(d.data() || {});
+        const prev = notes.get(d.id);
         notes.set(d.id, n);
         if (d.id === currentId) {
           if (document.activeElement !== titleEl && titleEl.value !== n.title) titleEl.value = n.title;
-          if (document.activeElement !== bodyEl && bodyEl.value !== n.body) bodyEl.value = n.body;
+          if (document.activeElement !== bodyEl && bodyEl.innerHTML !== n.html) bodyEl.innerHTML = n.html;
+          if (!prev || JSON.stringify(prev.files) !== JSON.stringify(n.files)) renderFiles();
+          if (!prev || prev.labels.join() !== n.labels.join()) renderLabels();
           renderMeta();
         }
       });
@@ -343,7 +662,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
       updateStatus(); renderList();
     }, err => {
       loaded = true; setStatus("err", "Нет синхронизации");
-      banner(err.code === "permission-denied" ? "Firebase не пускает к заметкам: проверь правила Firestore (шаг 4 в README)." : "Синхронизация прервалась (" + err.code + "). Перезапусти приложение.");
+      banner(err.code === "permission-denied" ? "Firebase не пускает к заметкам: обнови правила Firestore." : "Синхронизация прервалась (" + err.code + "). Перезапусти приложение.");
       renderList();
     });
   }
@@ -351,7 +670,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
   FB.onAuthStateChanged(auth, user => {
     if (unsub) { unsub(); unsub = null; }
     for (const t of timers.values()) clearTimeout(t); timers.clear();
-    if (user) startNotes(user); else { col = null; show("login"); }
+    if (user) startNotes(user); else { col = null; filesCol = null; show("login"); }
   });
 })();
 </script>
