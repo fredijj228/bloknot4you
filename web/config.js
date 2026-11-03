@@ -1,10 +1,8 @@
-// ⬇⬇⬇  ВСТАВЬ СЮДА СВОИ ДАННЫЕ ИЗ FIREBASE (шаг 2 в README)  ⬇⬇⬇
-// Замени весь объект ниже на тот, что Firebase показал тебе как "firebaseConfig".
 window.FIREBASE_CONFIG = {
-  apiKey: "ВСТАВЬ_СЮДА",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyBjOX77o9Qfsutv3W4iGdZ6r38MYt1pEvY",
+  authDomain: "bloknot-b4b4b.firebaseapp.com",
+  projectId: "bloknot-b4b4b",
+  storageBucket: "bloknot-b4b4b.firebasestorage.app",
+  messagingSenderId: "350121306615",
+  appId: "1:350121306615:web:13d7dfdb0b8d058464e6f2"
 };
