@@ -3,12 +3,15 @@ package com.bloknot.notes;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
+import android.view.View;
+import android.view.Window;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -24,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
+@SuppressWarnings("deprecation")
 public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final int PICK_FILE = 42;
@@ -113,6 +117,24 @@ public class MainActivity extends Activity {
     }
 
     private class Bridge {
+        // Цвет верхней и нижней полосок под выбранную тему
+        @JavascriptInterface
+        public void setBars(final String color, final boolean light) {
+            runOnUiThread(() -> {
+                try {
+                    int c = Color.parseColor(color);
+                    Window w = getWindow();
+                    w.setStatusBarColor(c);
+                    w.setNavigationBarColor(c);
+                    View d = w.getDecorView();
+                    int f = d.getSystemUiVisibility();
+                    int lightFlags = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR;
+                    d.setSystemUiVisibility(light ? (f | lightFlags) : (f & ~lightFlags));
+                    d.setBackgroundColor(c);
+                } catch (Exception ignored) { }
+            });
+        }
+
         @JavascriptInterface
         public String saveFile(String name, String mime, String base64) {
             try {
