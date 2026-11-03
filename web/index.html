@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Блокнот</title>
+<meta name="theme-color" content="#f8f9fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#171c24" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+:root{
+  --bg:#eef1f4; --panel:#f8f9fb; --page:#ffffff; --ink:#18202c; --muted:#66707f;
+  --line:#dde2e9; --rule:#e6ebf2; --accent:#2f56d9; --on-accent:#ffffff; --accent-soft:#e3e9fc; --danger:#c23a2b; --ok:#2e9e5b;
+  --f-display:"Unbounded",system-ui,sans-serif;
+  --f-body:"Golos Text",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#12161d; --panel:#171c24; --page:#1c222c; --ink:#e7ebf1; --muted:#909aa9;
+  --line:#2a313d; --rule:#252c37; --accent:#7f9cff; --on-accent:#0f1422; --accent-soft:#25304d; --danger:#ff7b6b; --ok:#4cc27c; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;overflow:hidden;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.new,.primary{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--accent);color:var(--on-accent);border:0;border-radius:10px;padding:12px 14px;font-weight:600}
+.field{width:100%;background:var(--page);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;color:var(--ink)}
+.field::placeholder{color:var(--muted)}
+.link{background:none;border:0;color:var(--accent);padding:4px 0;font-size:14px}
+.banner{padding:10px 12px;border-radius:10px;background:var(--accent-soft);font-size:13px;line-height:1.45}
+.banner.err{background:var(--accent-soft);background:color-mix(in srgb,var(--danger) 14%,var(--page))}
+
+/* ----- login / setup ----- */
+.gate{height:100%;overflow-y:auto;display:flex;align-items:center;justify-content:center;padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.card{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px}
+.card h1{font-family:var(--f-display);font-weight:600;font-size:26px;margin:0 0 2px}
+.card p{margin:0 0 6px;color:var(--muted);line-height:1.5}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 140px}
+.ghost{background:var(--page);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-weight:600}
+.card code{font-family:var(--f-mono);font-size:13px;background:var(--page);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+
+/* ----- notes ----- */
+.app{height:100%;display:grid;grid-template-columns:320px 1fr}
+.side{display:flex;flex-direction:column;min-height:0;background:var(--panel);border-right:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px;padding-block:18px 0;gap:14px}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand h1{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0}
+.status{font-family:var(--f-mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.status[data-s="ok"] .dot{background:var(--ok)}
+.status[data-s="saving"] .dot{background:var(--accent)}
+.status[data-s="err"] .dot{background:var(--danger)}
+.list{flex:1;min-height:0;overflow-y:auto;margin:0 -8px;padding:0 8px 8px;display:flex;flex-direction:column;gap:2px}
+.item{display:block;width:100%;text-align:left;background:none;border:0;border-radius:10px;padding:10px 12px}
+.item:hover{background:var(--accent-soft)}
+.item[aria-current="true"]{background:var(--page);box-shadow:0 0 0 1px var(--line)}
+.item .t{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .pin{color:var(--accent);font-size:11px;margin-right:6px}
+.item .p{color:var(--muted);font-size:13px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .d{font-family:var(--f-mono);font-size:11px;color:var(--muted);margin-top:5px}
+.empty{color:var(--muted);font-size:14px;line-height:1.5;padding:12px 4px}
+.foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-block:10px 14px;font-size:12px;color:var(--muted)}
+.foot span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.main{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--page)}
+.bar{display:flex;align-items:center;gap:8px;padding-block:12px;border-bottom:1px solid var(--line);padding-left:24px;padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar .meta{flex:1;font-family:var(--f-mono);font-size:11px;color:var(--muted);min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbtn{background:none;border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px;white-space:nowrap}
+.tbtn[aria-pressed="true"]{background:var(--accent-soft);border-color:transparent;color:var(--accent)}
+.tbtn.del[data-armed="true"]{background:var(--danger);border-color:var(--danger);color:#fff}
+.back{display:none}
+.sheet{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;padding-left:24px;padding-right:max(24px,env(safe-area-inset-right,0px));padding-block:22px 40px}
+.sheet-in{max-width:68ch;width:100%;display:flex;flex-direction:column;flex:1}
+.title{border:0;background:none;color:var(--ink);font-family:var(--f-body);font-weight:600;font-size:26px;line-height:1.25;padding:0 0 10px;outline:none}
+.title::placeholder,.body::placeholder{color:var(--muted)}
+.body{flex:1;min-height:60vh;border:0;resize:none;background:transparent;color:var(--ink);font:inherit;font-size:16px;outline:none;padding:0;line-height:28px;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 27px,var(--rule) 27px,var(--rule) 28px);background-attachment:local}
+.placeholder{flex:1;display:flex;align-items:center;justify-content:center;color:var(--muted);text-align:center;padding:24px;line-height:1.6}
+.placeholder b{display:block;font-family:var(--f-display);font-weight:600;color:var(--ink);font-size:18px;margin-bottom:6px}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .app[data-view="list"] .main{display:none}
+  .app[data-view="note"] .side{display:none}
+  .side{border-right:0;padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .back{display:inline-block}
+  .bar,.sheet{padding-left:max(16px,env(safe-area-inset-left,0px))}
+  .sheet{padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .title{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- Нет настроек Firebase -->
+<section class="gate" id="setup" hidden>
+  <div class="card">
+    <h1>Почти готово</h1>
+    <p>Блокноту нужны данные твоего проекта Firebase. Открой на GitHub файл <code>web/config.js</code>, вставь туда свой <code>firebaseConfig</code> и сохрани. Через пару минут GitHub пересоберёт приложение.</p>
+  </div>
+</section>
+
+<!-- Вход -->
+<section class="gate" id="login" hidden>
+  <form class="card" id="loginForm" novalidate>
+    <h1>Блокнот</h1>
+    <p>Войди одной и той же почтой на телефоне и на ПК — заметки будут общими.</p>
+    <div id="loginMsg" class="banner" hidden></div>
+    <input class="field" id="email" type="email" placeholder="Почта" autocomplete="email" required>
+    <input class="field" id="password" type="password" placeholder="Пароль (от 6 символов)" autocomplete="current-password" required>
+    <div class="row">
+      <button class="primary" id="signInBtn" type="submit">Войти</button>
+      <button class="ghost" id="signUpBtn" type="button">Создать аккаунт</button>
+    </div>
+    <button class="link" id="resetBtn" type="button">Забыл пароль</button>
+  </form>
+</section>
+
+<!-- Заметки -->
+<div class="app" id="app" data-view="list" hidden>
+  <aside class="side">
+    <div class="brand">
+      <h1>Блокнот</h1>
+      <div class="status" id="status" data-s="load"><span class="dot"></span><span id="statusText">Подключаюсь…</span></div>
+    </div>
+    <div id="banner" class="banner err" hidden></div>
+    <button class="new" id="newBtn" type="button">＋ Новая заметка</button>
+    <input class="field" id="search" type="search" placeholder="Поиск по заметкам" autocomplete="off">
+    <div class="list" id="list"><div class="empty">Загружаю заметки…</div></div>
+    <div class="foot"><span id="who"></span><button class="link" id="outBtn" type="button">Выйти</button></div>
+  </aside>
+  <main class="main">
+    <div class="bar" id="bar" hidden>
+      <button class="tbtn back" id="backBtn" type="button">← Список</button>
+      <div class="meta" id="meta"></div>
+      <button class="tbtn" id="pinBtn" type="button" aria-pressed="false">Закрепить</button>
+      <button class="tbtn del" id="delBtn" type="button">Удалить</button>
+    </div>
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet-in">
+        <input class="title" id="title" placeholder="Заголовок" autocomplete="off">
+        <textarea class="body" id="body" placeholder="Начните писать…"></textarea>
+      </div>
+    </div>
+    <div class="placeholder" id="ph"><div><b>Выберите заметку</b>или создайте новую — она сразу появится на всех устройствах.</div></div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="firebase.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const show = (id) => { for (const s of ["setup","login","app"]) $(s).hidden = s !== id; };
+
+  const cfg = window.FIREBASE_CONFIG;
+  if (!window.FB || !cfg || !cfg.apiKey || cfg.apiKey.includes("ВСТАВЬ")) { show("setup"); return; }
+
+  const fbApp = FB.initializeApp(cfg);
+  const auth = FB.getAuth(fbApp);
+  let fs;
+  try { fs = FB.initializeFirestore(fbApp, { localCache: FB.persistentLocalCache({ tabManager: FB.persistentMultipleTabManager() }) }); }
+  catch (e) { fs = FB.initializeFirestore(fbApp, { localCache: FB.memoryLocalCache() }); }
+
+  // ---------- вход ----------
+  const AUTH_ERR = {
+    "auth/invalid-email": "Похоже, почта написана с ошибкой.",
+    "auth/missing-email": "Впиши почту.",
+    "auth/missing-password": "Впиши пароль.",
+    "auth/invalid-credential": "Неверная почта или пароль.",
+    "auth/wrong-password": "Неверная почта или пароль.",
+    "auth/user-not-found": "Аккаунта с такой почтой нет — нажми «Создать аккаунт».",
+    "auth/email-already-in-use": "Такой аккаунт уже есть — просто нажми «Войти».",
+    "auth/weak-password": "Пароль слишком короткий: нужно хотя бы 6 символов.",
+    "auth/too-many-requests": "Слишком много попыток. Подожди пару минут.",
+    "auth/network-request-failed": "Нет интернета. Для входа нужна связь.",
+    "auth/operation-not-allowed": "В Firebase не включён вход по почте (шаг 3 в README).",
+    "auth/configuration-not-found": "В Firebase не включён вход по почте (шаг 3 в README).",
+    "auth/invalid-api-key": "В config.js неверный apiKey — проверь, что скопировал firebaseConfig целиком."
+  };
+  function loginMsg(text, isErr) { const m = $("loginMsg"); m.textContent = text || ""; m.hidden = !text; m.className = "banner" + (isErr ? " err" : ""); }
+  function busy(on) { for (const b of ["signInBtn","signUpBtn","resetBtn"]) $(b).disabled = on; }
+  async function doAuth(fn) {
+    const email = $("email").value.trim(), pass = $("password").value;
+    loginMsg(""); busy(true);
+    try { await fn(auth, email, pass); }
+    catch (e) { loginMsg(AUTH_ERR[e.code] || ("Не получилось: " + (e.code || e.message)), true); }
+    finally { busy(false); }
+  }
+  $("loginForm").addEventListener("submit", e => { e.preventDefault(); doAuth(FB.signInWithEmailAndPassword); });
+  $("signUpBtn").onclick = () => doAuth(FB.createUserWithEmailAndPassword);
+  $("resetBtn").onclick = async () => {
+    const email = $("email").value.trim();
+    if (!email) { loginMsg("Впиши почту, и я пришлю ссылку для нового пароля.", true); return; }
+    busy(true);
+    try { await FB.sendPasswordResetEmail(auth, email); loginMsg("Письмо со ссылкой отправлено на " + email + ". Проверь и папку «Спам»."); }
+    catch (e) { loginMsg(AUTH_ERR[e.code] || "Не удалось отправить письмо.", true); }
+    finally { busy(false); }
+  };
+  $("outBtn").onclick = () => { flushAll(); FB.signOut(auth); };
+
+  // ---------- заметки ----------
+  const app = $("app"), list = $("list"), titleEl = $("title"), bodyEl = $("body"), meta = $("meta");
+  let notes = new Map(), timers = new Map(), col = null, unsub = null, currentId = null, query = "", loaded = false, lastMeta = { fromCache: true, hasPendingWrites: false };
+
+  const fmt = ts => {
+    if (!ts) return "";
+    const d = new Date(ts), now = new Date();
+    if (d.toDateString() === now.toDateString()) return "сегодня, " + d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: d.getFullYear() === now.getFullYear() ? undefined : "numeric" });
+  };
+  const plural = (n, a, b, c) => { const m = n % 10, h = n % 100; return m === 1 && h !== 11 ? a : m >= 2 && m <= 4 && (h < 12 || h > 14) ? b : c; };
+  function setStatus(s, t) { $("status").dataset.s = s; $("statusText").textContent = t; }
+  function banner(t) { $("banner").textContent = t || ""; $("banner").hidden = !t; }
+  function updateStatus() {
+    if (timers.size || lastMeta.hasPendingWrites) setStatus("saving", navigator.onLine ? "Сохраняю…" : "Сохранено на устройстве");
+    else if (!navigator.onLine) setStatus("err", "Офлайн");
+    else if (lastMeta.fromCache) setStatus("load", "Подключаюсь…");
+    else setStatus("ok", "Синхронизировано");
+  }
+  addEventListener("online", updateStatus); addEventListener("offline", updateStatus);
+
+  function sorted() { return [...notes.entries()].sort((a, b) => (b[1].pinned ? 1 : 0) - (a[1].pinned ? 1 : 0) || (b[1].updatedAt || 0) - (a[1].updatedAt || 0)); }
+  function renderList() {
+    const q = query.trim().toLowerCase();
+    const items = sorted().filter(([, n]) => !q || (n.title + " " + n.body).toLowerCase().includes(q));
+    list.textContent = "";
+    if (!items.length) {
+      const e = document.createElement("div"); e.className = "empty";
+      e.textContent = !loaded ? "Загружаю заметки…" : q ? "Ничего не найдено." : "Пока пусто. Нажми «Новая заметка» — она появится на всех устройствах, где ты вошёл.";
+      list.append(e); return;
+    }
+    for (const [id, n] of items) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "item";
+      b.setAttribute("aria-current", id === currentId ? "true" : "false");
+      const t = document.createElement("div"); t.className = "t";
+      if (n.pinned) { const p = document.createElement("span"); p.className = "pin"; p.textContent = "●"; t.append(p); }
+      t.append(document.createTextNode(n.title.trim() || "Без названия"));
+      const p = document.createElement("div"); p.className = "p"; p.textContent = n.body.replace(/\s+/g, " ").trim() || "Пустая заметка";
+      const d = document.createElement("div"); d.className = "d"; d.textContent = fmt(n.updatedAt);
+      b.append(t, p, d); b.onclick = () => open(id); list.append(b);
+    }
+  }
+  function renderMeta() {
+    const n = notes.get(currentId); if (!n) return;
+    const w = (n.body.match(/\S+/g) || []).length;
+    meta.textContent = `Изменено ${fmt(n.updatedAt)} · ${w} ${plural(w, "слово", "слова", "слов")}`;
+    $("pinBtn").setAttribute("aria-pressed", n.pinned ? "true" : "false");
+    $("pinBtn").textContent = n.pinned ? "Закреплено" : "Закрепить";
+  }
+  function showEditor(on) { $("bar").hidden = !on; $("sheet").hidden = !on; $("ph").hidden = on; }
+  function open(id) {
+    flushAll(); currentId = id; const n = notes.get(id);
+    if (!n) { showEditor(false); renderList(); return; }
+    titleEl.value = n.title; bodyEl.value = n.body; disarmDelete();
+    showEditor(true); renderMeta(); renderList(); app.dataset.view = "note";
+    if (!n.title && !n.body) titleEl.focus();
+  }
+  function closeNote() { flushAll(); app.dataset.view = "list"; }
+
+  function save(id) {
+    const n = notes.get(id); if (!n || !col) return;
+    FB.setDoc(FB.doc(col, id), n).catch(err => {
+      setStatus("err", "Не сохранено");
+      banner(err && err.code === "permission-denied" ? "Firebase не пускает к заметкам: проверь правила Firestore (шаг 4 в README)." : "Не удалось сохранить: " + (err.code || err.message));
+    });
+  }
+  function schedule(id, ms = 500) {
+    clearTimeout(timers.get(id));
+    timers.set(id, setTimeout(() => { timers.delete(id); save(id); updateStatus(); }, ms));
+    updateStatus();
+  }
+  function flushAll() { for (const [id, t] of timers) { clearTimeout(t); timers.delete(id); save(id); } updateStatus(); }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushAll(); });
+  addEventListener("pagehide", flushAll);
+
+  function edit(field, value) {
+    const n = notes.get(currentId); if (!n) return;
+    notes.set(currentId, { ...n, [field]: value, updatedAt: Date.now() });
+    schedule(currentId); renderMeta(); renderList();
+  }
+  titleEl.addEventListener("input", () => edit("title", titleEl.value));
+  bodyEl.addEventListener("input", () => edit("body", bodyEl.value));
+  titleEl.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); bodyEl.focus(); } });
+
+  $("newBtn").onclick = () => {
+    if (!col) return;
+    const id = FB.doc(col).id, now = Date.now();
+    notes.set(id, { title: "", body: "", pinned: false, createdAt: now, updatedAt: now });
+    query = ""; $("search").value = "";
+    save(id); open(id);
+  };
+  $("pinBtn").onclick = () => { const n = notes.get(currentId); if (!n) return; notes.set(currentId, { ...n, pinned: !n.pinned }); schedule(currentId, 0); renderMeta(); renderList(); };
+  $("backBtn").onclick = closeNote;
+  $("search").addEventListener("input", e => { query = e.target.value; renderList(); });
+
+  let armTimer = null;
+  function disarmDelete() { clearTimeout(armTimer); $("delBtn").dataset.armed = "false"; $("delBtn").textContent = "Удалить"; }
+  $("delBtn").onclick = () => {
+    const b = $("delBtn");
+    if (b.dataset.armed !== "true") { b.dataset.armed = "true"; b.textContent = "Точно удалить?"; armTimer = setTimeout(disarmDelete, 3500); return; }
+    disarmDelete();
+    const id = currentId; clearTimeout(timers.get(id)); timers.delete(id);
+    notes.delete(id); currentId = null; showEditor(false); app.dataset.view = "list"; renderList();
+    FB.deleteDoc(FB.doc(col, id)).catch(() => setStatus("err", "Не удалено"));
+  };
+
+  window.appPause = flushAll;   // Android: приложение свернули
+  // кнопка «Назад» на Android
+  window.appBack = () => {
+    if (!app.hidden && app.dataset.view === "note" && matchMedia("(max-width:760px)").matches) { closeNote(); return true; }
+    return false;
+  };
+
+  function startNotes(user) {
+    notes = new Map(); currentId = null; loaded = false; showEditor(false); app.dataset.view = "list";
+    $("who").textContent = user.email || ""; banner(""); show("app"); renderList(); updateStatus();
+    col = FB.collection(fs, "users", user.uid, "notes");
+    unsub = FB.onSnapshot(col, { includeMetadataChanges: true }, snap => {
+      loaded = true; lastMeta = snap.metadata;
+      const seen = new Set();
+      snap.docs.forEach(d => {
+        seen.add(d.id);
+        if (timers.has(d.id) || d.metadata.hasPendingWrites) return;   // это сейчас редактируется здесь
+        const v = d.data() || {};
+        const n = { title: String(v.title || ""), body: String(v.body || ""), pinned: !!v.pinned, createdAt: v.createdAt || 0, updatedAt: v.updatedAt || 0 };
+        notes.set(d.id, n);
+        if (d.id === currentId) {
+          if (document.activeElement !== titleEl && titleEl.value !== n.title) titleEl.value = n.title;
+          if (document.activeElement !== bodyEl && bodyEl.value !== n.body) bodyEl.value = n.body;
+          renderMeta();
+        }
+      });
+      for (const id of [...notes.keys()]) if (!seen.has(id) && !timers.has(id)) {
+        notes.delete(id);
+        if (id === currentId) { currentId = null; showEditor(false); app.dataset.view = "list"; }
+      }
+      if (!snap.metadata.fromCache) banner("");
+      updateStatus(); renderList();
+    }, err => {
+      loaded = true; setStatus("err", "Нет синхронизации");
+      banner(err.code === "permission-denied" ? "Firebase не пускает к заметкам: проверь правила Firestore (шаг 4 в README)." : "Синхронизация прервалась (" + err.code + "). Перезапусти приложение.");
+      renderList();
+    });
+  }
+
+  FB.onAuthStateChanged(auth, user => {
+    if (unsub) { unsub(); unsub = null; }
+    for (const t of timers.values()) clearTimeout(t); timers.clear();
+    if (user) startNotes(user); else { col = null; show("login"); }
+  });
+})();
+</script>
+</body>
+</html>
