@@ -1,0 +1,51 @@
+name: Сборка APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Упаковать Firebase в один файл
+        run: |
+          npm install --no-save --no-package-lock firebase@10.14.1 esbuild@0.23.1
+          npx esbuild tools/firebase-entry.js --bundle --format=iife --global-name=FB --minify --platform=browser --target=es2019 --outfile=web/firebase.js
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Собрать APK
+        working-directory: android
+        run: gradle assembleRelease --no-daemon
+
+      - name: Переименовать
+        run: cp android/app/build/outputs/apk/release/app-release.apk Bloknot.apk
+
+      - name: Выложить в Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Блокнот 1.0.${{ github.run_number }}
+          body: Скачай Bloknot.apk ниже и открой его на телефоне.
+          files: Bloknot.apk
+          make_latest: true
