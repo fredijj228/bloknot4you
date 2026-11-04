@@ -115,6 +115,9 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
 .chip[aria-pressed="true"]{border-color:var(--c);color:var(--c);background:var(--accent-soft);background:color-mix(in srgb,var(--c) 13%,var(--page));font-weight:600}
 .filters{display:flex;gap:6px;overflow-x:auto;margin:0 -16px;padding:0 16px 2px;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
+@media (min-width:761px){.filters{flex-wrap:wrap;overflow:visible;margin:0;padding:0}}
+.lbl[data-l="trash"]{--c:var(--muted)}
+.chip .cnt{font-family:var(--f-mono);font-size:11px;opacity:.8}
 
 /* список */
 .app{height:100%;display:grid;grid-template-columns:340px 1fr}
@@ -169,6 +172,13 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
 .body h2{font-size:22px;line-height:1.3;margin:18px 0 6px}
 .body ul,.body ol{padding-left:24px;margin:6px 0}
 .body p{margin:0 0 6px}
+.body ul.check{list-style:none;padding-left:2px}
+.body ul.check>li{position:relative;padding-left:32px;margin:5px 0}
+.body ul.check>li::before{content:"";position:absolute;left:2px;top:.22em;width:20px;height:20px;border:2px solid var(--muted);border-radius:7px;box-sizing:border-box;cursor:pointer;background:var(--page)}
+.body ul.check>li[data-done]::before{background:var(--accent);border-color:var(--accent)}
+.body ul.check>li[data-done]::after{content:"";position:absolute;left:9px;top:calc(.22em + 4px);width:5px;height:10px;border:solid var(--on-accent);border-width:0 2.5px 2.5px 0;transform:rotate(45deg);pointer-events:none}
+.body ul.check>li[data-done]{color:var(--muted);text-decoration:line-through}
+.body[contenteditable="false"]{opacity:.75}
 /* вложения */
 .files{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .file{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;background:var(--panel);min-width:0}
@@ -212,7 +222,8 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
 .viewer .vbar button{background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:10px;padding:9px 14px}
 .viewer .vimg{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding-top:10px}
 .viewer img{max-width:100%;max-height:100%;object-fit:contain}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--page);padding:11px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);text-align:center;box-shadow:var(--shadow)}
+.toast{display:flex;align-items:center;gap:14px;position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:var(--page);padding:11px 16px;border-radius:12px;font-size:14px;max-width:calc(100% - 32px);text-align:center;box-shadow:var(--shadow)}
+.toast button{border:0;background:none;color:var(--page);font-weight:700;text-decoration:underline;padding:2px 0;font-size:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media (max-width:760px){
   .app{grid-template-columns:1fr}
@@ -269,8 +280,8 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
       <div class="logo"><span class="mark"><svg><use href="#glyph"/></svg></span><span class="wordmark"><b>Блокнот</b><span class="byline">by Artemiy Romanchenko</span></span></div>
     </div>
     <div id="banner" class="banner err" hidden></div>
-    <button class="new" id="newBtn" type="button">＋ Новая заметка</button>
-    <input class="field" id="search" type="search" placeholder="Поиск по заметкам" autocomplete="off">
+    <button class="new" id="newBtn" type="button" title="Новая заметка (Alt+N)">＋ Новая заметка</button>
+    <input class="field" id="search" type="search" placeholder="Поиск по заметкам" title="Поиск (Ctrl+K)" autocomplete="off">
     <div class="filters" id="filters"></div>
     <div class="list" id="list"><div class="empty">Загружаю заметки…</div></div>
     <div class="foot"><div class="status" id="status" data-s="load"><span class="dot"></span><span id="statusText">Подключаюсь…</span></div><span></span><button class="icon" id="themeBtn" type="button">🎨 Тема</button><button class="link" id="outBtn" type="button">Выйти</button></div>
@@ -279,6 +290,7 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
     <div class="bar" id="bar" hidden>
       <button class="tbtn back" id="backBtn" type="button">← Список</button>
       <div class="meta" id="meta"></div>
+      <button class="tbtn" id="restoreBtn" type="button" hidden>↩ Восстановить</button>
       <button class="tbtn" id="pinBtn" type="button" aria-pressed="false">📌 Закрепить</button>
       <button class="tbtn del" id="delBtn" type="button">Удалить</button>
     </div>
@@ -292,12 +304,15 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
         <button type="button" data-cmd="h2" title="Заголовок" aria-pressed="false"><b>H</b></button>
         <button type="button" data-cmd="insertUnorderedList" title="Список" aria-pressed="false">•≡</button>
         <button type="button" data-cmd="insertOrderedList" title="Нумерованный список" aria-pressed="false">1.</button>
+        <button type="button" data-cmd="check" title="Чек-лист с галочками" aria-pressed="false">☑</button>
         <button type="button" data-cmd="removeFormat" title="Убрать оформление">⌫A</button>
+        <button type="button" id="copyBtn" title="Скопировать текст заметки">⧉</button>
         <button type="button" class="attach" id="attachBtn" title="Прикрепить файл">📎<span class="lbltxt"> Файл</span></button>
       </div>
     </div>
     <div class="sheet" id="sheet" hidden>
       <div class="sheet-in">
+        <div class="banner" id="trashNote" hidden>Заметка в корзине. Через 30 дней она удалится сама — нажми «↩ Восстановить», чтобы вернуть её.</div>
         <input class="title" id="title" placeholder="Заголовок" autocomplete="off">
         <div class="labels" id="labels"></div>
         <div class="body" id="body" contenteditable="true" data-placeholder="Начните писать…"></div>
@@ -334,7 +349,7 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
   <div class="vbar"><button type="button" id="vSave">Скачать</button><button type="button" id="vClose">✕ Закрыть</button></div>
   <div class="vimg"><img id="vImg" alt=""></div>
 </div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" hidden><span id="toastText"></span><button type="button" id="toastAct" hidden></button></div>
 
 <script src="config.js"></script>
 <script src="firebase.js"></script>
@@ -391,7 +406,13 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
   const MAX_FILE = 700 * 1024;   // ограничение бесплатного Firestore: 1 МБ на документ
 
   let toastTimer = null;
-  function toast(t) { const el = $("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, 3200); }
+  function toast(t, actLabel, actFn) {
+    const el = $("toast"), act = $("toastAct");
+    $("toastText").textContent = t; act.hidden = !actLabel; act.textContent = actLabel || "";
+    act.onclick = () => { el.hidden = true; actFn && actFn(); };
+    el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.hidden = true, actLabel ? 6000 : 3200);
+  }
+  const DAY = 86400000, TRASH_DAYS = 30;
   const kb = n => n < 1024 ? n + " Б" : n < 1048576 ? Math.round(n / 1024) + " КБ" : (n / 1048576).toFixed(1).replace(".", ",") + " МБ";
   const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -436,6 +457,7 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
   const app = $("app"), list = $("list"), titleEl = $("title"), bodyEl = $("body"), meta = $("meta");
   let notes = new Map(), timers = new Map(), col = null, filesCol = null, unsub = null, currentId = null;
   let query = "", filter = "all", loaded = false, lastMeta = { fromCache: true, hasPendingWrites: false };
+  let purgedOld = false;
   const fileCache = new Map();   // id -> dataURL
 
   const fmtDate = ts => {
@@ -466,7 +488,12 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
         if (c.nodeType !== 1 || DROP.has(c.tagName)) { c.remove(); continue; }
         walk(c);
         if (!KEEP.has(c.tagName)) c.replaceWith(...c.childNodes);
-        else for (const a of [...c.attributes]) c.removeAttribute(a.name);
+        else {
+          const check = c.tagName === "UL" && c.classList.contains("check"), done = c.tagName === "LI" && c.hasAttribute("data-done");
+          for (const a of [...c.attributes]) c.removeAttribute(a.name);
+          if (check) c.className = "check";
+          if (done) c.setAttribute("data-done", "1");
+        }
       }
     };
     walk(doc.body);
@@ -479,6 +506,8 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
     pinned: !!v.pinned,
     labels: Array.isArray(v.labels) ? v.labels.filter(l => LABELS.some(x => x.id === l)) : [],
     files: Array.isArray(v.files) ? v.files.filter(f => f && f.id) : [],
+    todo: Array.isArray(v.todo) && v.todo.length === 2 ? v.todo.map(Number) : null,
+    trashed: Number(v.trashed) || 0,
     createdAt: v.createdAt || 0, updatedAt: v.updatedAt || 0
   });
 
@@ -488,13 +517,22 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
     const mk = (id, name) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "chip lbl"; b.dataset.l = id;
       b.setAttribute("aria-pressed", filter === id ? "true" : "false");
-      if (id !== "all" && id !== "pinned") { const s = document.createElement("span"); s.className = "sw"; b.append(s); }
+      if (LABELS.some(l => l.id === id)) { const s = document.createElement("span"); s.className = "sw"; b.append(s); }
       b.append(document.createTextNode(name));
+      if (id === "trash") { trashCnt = document.createElement("span"); trashCnt.className = "cnt"; b.append(trashCnt); }
       b.onclick = () => { filter = id; renderFilters(); renderList(); };
       f.append(b);
     };
     mk("all", "Все"); mk("pinned", "📌 Закреплённые");
     LABELS.forEach(l => mk(l.id, l.name));
+    mk("trash", "🗑 Корзина");
+    updateTrashCount();
+  }
+  let trashCnt = null;
+  function updateTrashCount() {
+    if (!trashCnt) return;
+    const c = [...notes.values()].filter(n => n.trashed).length;
+    trashCnt.textContent = c ? String(c) : "";
   }
   function sorted() { return [...notes.entries()].sort((a, b) => (b[1].updatedAt || 0) - (a[1].updatedAt || 0)); }
   function itemEl(id, n) {
@@ -509,27 +547,35 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
       n.labels.forEach(l => { const i = document.createElement("i"); i.className = "lbl"; i.dataset.l = l; i.title = (LABELS.find(x => x.id === l) || {}).name || ""; tg.append(i); });
       d.append(tg);
     }
-    d.append(document.createTextNode(fmtDate(n.updatedAt) + (n.files.length ? " · 📎 " + n.files.length : "")));
+    d.append(document.createTextNode(
+      (n.trashed ? "удалена " + fmtDate(n.trashed) : fmtDate(n.updatedAt)) +
+      (n.todo ? " · ☑ " + n.todo[0] + "/" + n.todo[1] : "") +
+      (n.files.length ? " · 📎 " + n.files.length : "")));
     b.append(t, p, d); b.onclick = () => open(id);
     return b;
   }
   function group(name) { const g = document.createElement("div"); g.className = "group"; g.textContent = name; return g; }
   function renderList() {
     const q = query.trim().toLowerCase();
+    const inTrash = filter === "trash";
+    updateTrashCount();
     const items = sorted().filter(([, n]) =>
+      (inTrash ? !!n.trashed : !n.trashed) &&
       (!q || (n.title + " " + n.body + " " + n.files.map(f => f.name).join(" ")).toLowerCase().includes(q)) &&
-      (filter === "all" || (filter === "pinned" ? n.pinned : n.labels.includes(filter))));
+      (filter === "all" || inTrash || (filter === "pinned" ? n.pinned : n.labels.includes(filter))));
+    if (inTrash) items.sort((a, b) => b[1].trashed - a[1].trashed);
     list.textContent = "";
     if (!items.length) {
       const e = document.createElement("div"); e.className = "empty";
       e.textContent = !loaded ? "Загружаю заметки…" : q ? "Ничего не найдено."
+        : inTrash ? "Корзина пустая. Удалённые заметки хранятся здесь 30 дней — их можно вернуть."
         : filter === "pinned" ? "Закреплённых заметок нет. Открой заметку и нажми «📌 Закрепить»."
         : filter !== "all" ? "С этой меткой заметок нет. Метку можно поставить под заголовком заметки."
         : "Пока пусто. Нажми «Новая заметка» — она появится на всех устройствах, где ты вошёл.";
       list.append(e); return;
     }
     const pinned = items.filter(([, n]) => n.pinned), rest = items.filter(([, n]) => !n.pinned);
-    if (pinned.length && rest.length && filter !== "pinned") {
+    if (pinned.length && rest.length && filter !== "pinned" && !inTrash) {
       list.append(group("Закреплённые")); pinned.forEach(([id, n]) => list.append(itemEl(id, n)));
       list.append(group("Остальные")); rest.forEach(([id, n]) => list.append(itemEl(id, n)));
     } else items.forEach(([id, n]) => list.append(itemEl(id, n)));
@@ -558,14 +604,21 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
       box.append(b);
     });
   }
+  function applyNoteMode(n) {
+    const tr = !!(n && n.trashed);
+    titleEl.readOnly = tr; bodyEl.contentEditable = tr ? "false" : "true";
+    $("fmtwrap").hidden = tr; $("labels").hidden = tr; $("trashNote").hidden = !tr;
+    $("pinBtn").hidden = tr; $("restoreBtn").hidden = !tr;
+    disarmDelete();
+  }
   function showEditor(on) { $("bar").hidden = !on; $("fmtwrap").hidden = !on; $("sheet").hidden = !on; $("ph").hidden = on; }
   function open(id) {
     flushAll(); currentId = id; const n = notes.get(id);
     if (!n) { showEditor(false); renderList(); return; }
     titleEl.value = n.title; bodyEl.innerHTML = n.html; disarmDelete(); $("uploading").hidden = true;
-    showEditor(true); renderMeta(); renderLabels(); renderFiles(); renderList(); app.dataset.view = "note";
+    showEditor(true); applyNoteMode(n); renderMeta(); renderLabels(); renderFiles(); renderList(); app.dataset.view = "note";
     $("sheet").scrollTop = 0;
-    if (!n.title && !n.body && !n.files.length) titleEl.focus();
+    if (!n.trashed && !n.title && !n.body && !n.files.length) titleEl.focus();
   }
   function closeNote() { flushAll(); app.dataset.view = "list"; }
 
@@ -594,7 +647,11 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
   }
   titleEl.addEventListener("input", () => edit({ title: titleEl.value }));
   titleEl.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); bodyEl.focus(); } });
-  const bodyChanged = () => edit({ html: bodyEl.innerHTML, body: bodyEl.innerText.replace(/ /g, " ").trim() });
+  const todoCount = () => {
+    const all = bodyEl.querySelectorAll("ul.check > li").length;
+    return all ? [bodyEl.querySelectorAll("ul.check > li[data-done]").length, all] : null;
+  };
+  const bodyChanged = () => edit({ html: bodyEl.innerHTML, todo: todoCount(), body: bodyEl.innerText.replace(/ /g, " ").trim() });
   bodyEl.addEventListener("input", bodyChanged);
   bodyEl.addEventListener("blur", () => { if (!bodyEl.innerText.trim() && bodyEl.innerHTML) { bodyEl.innerHTML = ""; bodyChanged(); } });
   bodyEl.addEventListener("paste", e => {
@@ -611,7 +668,14 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
     b.addEventListener("click", () => {
       if (document.activeElement !== bodyEl) bodyEl.focus();
       const c = b.dataset.cmd;
-      if (c === "h2") {
+      if (c === "check") {
+        const ul = selList();
+        if (ul && ul.classList.contains("check")) document.execCommand("insertUnorderedList", false, null);
+        else {
+          if (!ul || ul.tagName !== "UL") document.execCommand("insertUnorderedList", false, null);
+          const nu = selList(); if (nu) nu.className = "check";
+        }
+      } else if (c === "h2") {
         const cur = String(document.queryCommandValue("formatBlock") || "").toLowerCase();
         document.execCommand("formatBlock", false, cur === "h2" ? "div" : "h2");
       } else document.execCommand(c, false, null);
@@ -622,11 +686,53 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
     if (document.activeElement !== bodyEl) return;
     fmtBtns.forEach(b => {
       const c = b.dataset.cmd; let on = false;
-      try { on = c === "h2" ? String(document.queryCommandValue("formatBlock")).toLowerCase() === "h2" : c !== "removeFormat" && document.queryCommandState(c); } catch (e) {}
+      const inCheck = !!(selList() && selList().classList.contains("check"));
+      try { on = c === "check" ? inCheck : c === "insertUnorderedList" && inCheck ? false : c === "h2" ? String(document.queryCommandValue("formatBlock")).toLowerCase() === "h2" : c !== "removeFormat" && document.queryCommandState(c); } catch (e) {}
       b.setAttribute("aria-pressed", on ? "true" : "false");
     });
   }
   document.addEventListener("selectionchange", syncFmt);
+  function selNode() {
+    const sel = getSelection(); if (!sel || !sel.rangeCount) return null;
+    let n = sel.anchorNode; if (n && n.nodeType === 3) n = n.parentNode;
+    return n && bodyEl.contains(n) ? n : null;
+  }
+  function selList() { const n = selNode(); const l = n && n.closest("ul,ol"); return l && bodyEl.contains(l) ? l : null; }
+
+  // галочки в чек-листе
+  function checkHit(e) {
+    const li = e.target.closest && e.target.closest("ul.check > li");
+    if (!li || !bodyEl.contains(li) || bodyEl.contentEditable === "false") return null;
+    const x = e.clientX - li.getBoundingClientRect().left;
+    return x >= -4 && x <= 28 ? li : null;
+  }
+  bodyEl.addEventListener("mousedown", e => { if (checkHit(e)) e.preventDefault(); });
+  bodyEl.addEventListener("click", e => {
+    const li = checkHit(e); if (!li) return;
+    e.preventDefault();
+    if (li.hasAttribute("data-done")) li.removeAttribute("data-done"); else li.setAttribute("data-done", "1");
+    bodyChanged();
+  });
+  bodyEl.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    setTimeout(() => {   // новый пункт чек-листа — без галочки
+      const n = selNode(); const li = n && n.closest("ul.check > li");
+      if (li && !li.textContent.trim() && li.hasAttribute("data-done")) { li.removeAttribute("data-done"); bodyChanged(); }
+    }, 0);
+  });
+
+  // копировать текст заметки
+  $("copyBtn").addEventListener("mousedown", e => e.preventDefault());
+  $("copyBtn").onclick = async () => {
+    const n = notes.get(currentId); if (!n) return;
+    const text = (n.title.trim() ? n.title.trim() + "\n\n" : "") + bodyEl.innerText.trim();
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.append(ta); ta.select(); try { document.execCommand("copy"); } catch (x) {} ta.remove();
+    }
+    toast("Текст заметки скопирован");
+  };
 
   // ---------- файлы ----------
   const ext = name => (name.split(".").pop() || "файл").slice(0, 5);
@@ -744,7 +850,9 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
   $("newBtn").onclick = () => {
     if (!col) return;
     const id = FB.doc(col).id, now = Date.now();
-    notes.set(id, { title: "", html: "", body: "", pinned: false, labels: (filter !== "all" && filter !== "pinned") ? [filter] : [], files: [], createdAt: now, updatedAt: now });
+    const lab = LABELS.some(l => l.id === filter) ? [filter] : [];
+    if (filter === "trash") { filter = "all"; renderFilters(); }
+    notes.set(id, { title: "", html: "", body: "", pinned: false, labels: lab, files: [], todo: null, trashed: 0, createdAt: now, updatedAt: now });
     query = ""; $("search").value = "";
     save(id); open(id);
   };
@@ -753,16 +861,43 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
   $("search").addEventListener("input", e => { query = e.target.value; renderList(); });
 
   let armTimer = null;
-  function disarmDelete() { clearTimeout(armTimer); $("delBtn").dataset.armed = "false"; $("delBtn").textContent = "Удалить"; }
-  $("delBtn").onclick = () => {
-    const b = $("delBtn");
-    if (b.dataset.armed !== "true") { b.dataset.armed = "true"; b.textContent = "Точно удалить?"; armTimer = setTimeout(disarmDelete, 3500); return; }
-    disarmDelete();
-    const id = currentId, n = notes.get(id); clearTimeout(timers.get(id)); timers.delete(id);
-    notes.delete(id); currentId = null; showEditor(false); app.dataset.view = "list"; renderList();
+  function disarmDelete() {
+    clearTimeout(armTimer); const n = notes.get(currentId);
+    $("delBtn").dataset.armed = "false"; $("delBtn").textContent = n && n.trashed ? "Удалить навсегда" : "Удалить";
+  }
+  function purge(id) {
+    const n = notes.get(id); clearTimeout(timers.get(id)); timers.delete(id);
+    notes.delete(id);
     if (n) n.files.forEach(f => { fileCache.delete(f.id); FB.deleteDoc(FB.doc(filesCol, f.id)).catch(() => {}); });
     FB.deleteDoc(FB.doc(col, id)).catch(() => setStatus("err", "Не удалено"));
+  }
+  function restore(id) {
+    const n = notes.get(id); if (!n) return;
+    notes.set(id, { ...n, trashed: 0 }); schedule(id, 0);
+    if (id === currentId) applyNoteMode(notes.get(id));
+    renderList(); toast("Заметка восстановлена");
+  }
+  $("restoreBtn").onclick = () => restore(currentId);
+  $("delBtn").onclick = () => {
+    const b = $("delBtn"), id = currentId, n = notes.get(id); if (!n) return;
+    if (!n.trashed) {   // сначала в корзину — можно вернуть
+      flushAll();
+      notes.set(id, { ...n, trashed: Date.now() }); schedule(id, 0);
+      currentId = null; showEditor(false); app.dataset.view = "list"; renderList();
+      toast("Заметка в корзине", "Вернуть", () => restore(id));
+      return;
+    }
+    if (b.dataset.armed !== "true") { b.dataset.armed = "true"; b.textContent = "Точно навсегда?"; armTimer = setTimeout(disarmDelete, 3500); return; }
+    purge(id); currentId = null; showEditor(false); app.dataset.view = "list"; renderList();
+    toast("Заметка удалена навсегда");
   };
+
+  // быстрые клавиши на ПК
+  addEventListener("keydown", e => {
+    if (app.hidden || !$("settings").hidden) return;
+    if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === "KeyN") { e.preventDefault(); $("newBtn").click(); }
+    else if ((e.ctrlKey || e.metaKey) && !e.altKey && e.code === "KeyK") { e.preventDefault(); closeNote(); $("search").focus(); $("search").select(); }
+  });
 
   window.appBack = () => {
     if (!$("viewer").hidden) { closeViewer(); return true; }
@@ -774,7 +909,7 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
 
   // ---------- синхронизация ----------
   function startNotes(user) {
-    notes = new Map(); currentId = null; loaded = false; filter = "all"; fileCache.clear();
+    notes = new Map(); currentId = null; loaded = false; filter = "all"; fileCache.clear(); purgedOld = false;
     showEditor(false); app.dataset.view = "list";
     $("who").textContent = user.email || ""; banner(""); show("app"); renderFilters(); renderList(); updateStatus();
     col = FB.collection(fs, "users", user.uid, "notes");
@@ -797,6 +932,7 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
           if (document.activeElement !== bodyEl && bodyEl.innerHTML !== n.html) bodyEl.innerHTML = n.html;
           if (!prev || JSON.stringify(prev.files) !== JSON.stringify(n.files)) renderFiles();
           if (!prev || prev.labels.join() !== n.labels.join()) renderLabels();
+          if (!prev || !!prev.trashed !== !!n.trashed) applyNoteMode(n);
           renderMeta();
         }
       });
@@ -804,7 +940,13 @@ input,textarea{font-size:16px}  /* iPhone не приближает экран �
         notes.delete(id);
         if (id === currentId) { currentId = null; showEditor(false); app.dataset.view = "list"; }
       }
-      if (!snap.metadata.fromCache) banner("");
+      if (!snap.metadata.fromCache) {
+        banner("");
+        if (!purgedOld) {   // корзина чистится сама через 30 дней
+          purgedOld = true;
+          for (const [id, n] of [...notes]) if (n.trashed && Date.now() - n.trashed > TRASH_DAYS * DAY && id !== currentId) purge(id);
+        }
+      }
       updateStatus(); renderList();
     }, err => {
       loaded = true; setStatus("err", "Нет синхронизации");
